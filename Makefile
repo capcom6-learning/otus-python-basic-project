@@ -15,7 +15,7 @@
 init:
 	pip install -r requirements.txt
 
-init-dev:
+init-dev: init
 	pip install -r requirements-dev.txt
 
 start:
