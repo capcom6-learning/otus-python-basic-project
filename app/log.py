@@ -11,3 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import logging
+from app.settings import config
+
+
+def setup_logging():
+    logging.basicConfig(
+        level=logging.DEBUG if config.common.debug else logging.WARNING,
+        format="%(asctime)s - %(name)s:%(lineno)d - %(levelname)s - %(message)s",
+    )

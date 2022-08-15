@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import motor.motor_asyncio as motor
+if __name__ == "__main__":
+    from app.cli import cli
 
-# client = motor.AsyncIOMotorClient('mongodb://localhost:27017')
+    cli()

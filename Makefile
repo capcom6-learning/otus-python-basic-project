@@ -22,6 +22,6 @@ start:
 	gunicorn --bind=0.0.0.0:8000 --access-logfile=- --proxy-allow-from='*' -k uvicorn.workers.UvicornWorker app.server:app
 
 start-dev:
-	python app/server.py
+	python -m app start
 
 .PHONY: init init-dev

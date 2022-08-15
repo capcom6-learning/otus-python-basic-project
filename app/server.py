@@ -14,15 +14,16 @@
 
 import fastapi
 
+from app.api import router
+from app.log import setup_logging
+
+setup_logging()
+
 app = fastapi.FastAPI()
+
+app.include_router(router, prefix="/api")
 
 
 @app.get("/")
 def index():
     return {"message": "Hello World"}
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app)

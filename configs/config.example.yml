@@ -1,7 +1,10 @@
+common:
+  debug: false
+
 http:
   host: 0.0.0.0
   port: 8000
 
 database:
   dsn: mongodb://localhost:27017
-  debug: true
+  debug: false

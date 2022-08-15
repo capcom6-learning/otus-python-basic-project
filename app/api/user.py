@@ -11,3 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from typing import List
+import fastapi
+import bcrypt
+import logging
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from app.models import PyObjectId, Station
+
+import app.repositories.users as users
+import app.repositories.stations as stations
+
+logger = logging.getLogger(__name__)
+
+router = fastapi.APIRouter(tags=["User"])
+
+
+@router.get("/station", response_model=List[Station], summary="Get all stations")
+async def station_select():
+    return await stations.select()

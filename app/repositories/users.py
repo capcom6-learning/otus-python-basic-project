@@ -12,11 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from fastapi import APIRouter
+from typing import Union
+from app.database import db
+from app.models import User
 
-from .admin import router as admin_router
-from .user import router as user_router
+collection = db.users
 
-router = APIRouter()
-router.include_router(admin_router, prefix="/admin")
-router.include_router(user_router)
+
+async def insert(user: User):
+    """Add a user"""
+    await collection.insert_one(user.dict(by_alias=True))
+
+
+async def get(name: str) -> Union[User, None]:
+    """Get a user by name"""
+    user = await collection.find_one({"name": name})
+    if user:
+        return User(**user)
+    return None
