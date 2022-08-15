@@ -100,10 +100,8 @@ async def station_put(
     responses={404: {"description": "Station not found"}},
 )
 async def station_delete(id: PyObjectId = fastapi.Path(..., title="Station ID")):
-    if not await stations.get(id):
+    if await stations.delete(id) == 0:
         raise fastapi.HTTPException(status_code=404, detail="Station not found")
-
-    await stations.delete(id)
 
 
 router = fastapi.APIRouter(dependencies=[fastapi.Depends(get_user)], tags=["Admin"])

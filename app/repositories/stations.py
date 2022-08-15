@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pymongo
 from typing import List, Union
 from app.database import db
 from app.models import PyObjectId, Station
@@ -57,6 +58,6 @@ async def update(station: Station) -> Station:
     return station
 
 
-async def delete(id: PyObjectId):
+async def delete(id: PyObjectId) -> bool:
     """Delete a station"""
-    await collection.delete_one({"_id": id})
+    return (await collection.delete_one({"_id": id})).deleted_count == 1
