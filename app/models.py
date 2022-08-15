@@ -62,21 +62,24 @@ class Station(BaseModel):
 
 class MeasureValue(pydantic.BaseModel):
     cur: float = pydantic.Field(..., description="Текущее значение")
-    min: Union[float, None] = pydantic.Field(..., description="Минимальное значение")
-    max: Union[float, None] = pydantic.Field(..., description="Максимальное значение")
+    min: Union[float, None] = pydantic.Field(None, description="Минимальное значение")
+    max: Union[float, None] = pydantic.Field(None, description="Максимальное значение")
 
 
 class WindValue(MeasureValue):
-    azimuth: Union[int, None] = pydantic.Field(..., description="Азимут")
-    direction: Union[str, None] = pydantic.Field(..., description="Направление")
+    azimuth: Union[int, None] = pydantic.Field(None, description="Азимут")
+    direction: Union[str, None] = pydantic.Field(None, description="Направление")
 
 
-class WeatherRecord(BaseModel):
+class AnonymousWeatherRecord(pydantic.BaseModel):
     timestamp: datetime = pydantic.Field(..., description="Дата и время")
-    station: Station = pydantic.Field(..., description="Станция")
     wind: WindValue = pydantic.Field(..., description="Ветер")
     temperature: MeasureValue = pydantic.Field(..., description="Температура")
     humidity: Union[MeasureValue, None] = pydantic.Field(..., description="Влажность")
     pressure: Union[MeasureValue, None] = pydantic.Field(..., description="Давление")
     light: Union[MeasureValue, None] = pydantic.Field(..., description="Освещенность")
     rain: Union[MeasureValue, None] = pydantic.Field(..., description="Осадки")
+
+
+class WeatherRecord(BaseModel, AnonymousWeatherRecord):
+    station: Station = pydantic.Field(..., description="Станция")

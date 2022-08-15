@@ -12,9 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import fastapi
+import app.models as models
+import app.repositories.stations as stations
+import app.repositories.measurements as measurements
 
-from .pws import router as pws_router
 
-router = fastapi.APIRouter()
-router.include_router(pws_router)
+async def import_data(station_code: str, record: models.AnonymousWeatherRecord):
+    station = await stations.get_by_code(station_code)
+    if station is None:
+        raise ValueError(f"Station {station_code} not found")
+
+    db_record = models.WeatherRecord(station=station, **record.dict())
+    await measurements.insert(db_record)

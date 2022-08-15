@@ -15,9 +15,12 @@
 import os
 from typing import Any, Dict, Tuple
 
+import dotenv
 import pydantic
-from pydantic.env_settings import SettingsSourceCallable
 import yaml
+from pydantic.env_settings import SettingsSourceCallable
+
+dotenv.load_dotenv()
 
 
 def yaml_config_settings_source(settings: pydantic.BaseSettings) -> Dict[str, Any]:

@@ -14,14 +14,16 @@
 
 import fastapi
 
-from app.api import router
+from app.api import router as api_router
+from app.drivers import router as drivers_router
 from app.log import setup_logging
 
 setup_logging()
 
 app = fastapi.FastAPI()
 
-app.include_router(router, prefix="/api")
+app.include_router(api_router, prefix="/api")
+app.include_router(drivers_router)
 
 
 @app.on_event("startup")

@@ -12,7 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime, tzinfo
+import pytz
 import pydantic
+import fastapi
+
+from app.models import AnonymousWeatherRecord, WindValue, MeasureValue
+from app.tasks import import_data
 
 # /weatherstation/updateweatherstation.php?
 # ID=IKRASN19&
@@ -41,6 +47,11 @@ import pydantic
 # realtime=1&
 # rtfreq=5
 
+router = fastapi.APIRouter(
+    prefix="/weatherstation/updateweatherstation.php",
+    tags=["Drivers", "PWS"],
+)
+
 
 class RawData(pydantic.BaseModel):
     ID: str
@@ -63,8 +74,35 @@ class RawData(pydantic.BaseModel):
     yearlyrain: float
     light: float
     UV: float
-    dateutc: str
+    dateutc: datetime
     softwaretype: str
     action: str
     rtfreq: int
     realtime: int
+
+
+@router.get("", status_code=201)
+async def process(data: RawData = fastapi.Depends(RawData)):
+    # set timezone to utc
+    # print(data.dateutc.replace(tzinfo=pytz.utc))
+    # return data
+    record = AnonymousWeatherRecord(
+        timestamp=data.dateutc.replace(tzinfo=pytz.utc),
+        wind=WindValue(
+            cur=data.windspeed,
+            min=0,
+            max=data.windgust,
+            azimuth=int(data.winddir + 180) % 360,
+            direction=None,
+        ),
+        temperature=MeasureValue(cur=data.intemp, min=None, max=None),
+        humidity=MeasureValue(cur=data.inhumi, min=None, max=None),
+        pressure=MeasureValue(cur=data.relbaro * 0.750061561303, min=None, max=None),
+        light=MeasureValue(cur=data.light / 126.7, min=None, max=None),
+        rain=MeasureValue(cur=data.dailyrain, min=None, max=None),
+    )
+
+    try:
+        await import_data(data.ID, record)
+    except ValueError as e:
+        raise fastapi.HTTPException(status_code=400, detail=str(e)) from e

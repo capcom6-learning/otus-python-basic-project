@@ -7,4 +7,5 @@ http:
 
 database:
   dsn: mongodb://localhost:27017
+  database: wind
   debug: false
