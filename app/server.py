@@ -46,7 +46,7 @@ async def on_startup() -> None:
     pass
 
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def index(request: fastapi.Request):
     last_data = await measurements.select_last()
 
