@@ -23,9 +23,8 @@ WORKDIR /app
 # COPY --from=build /usr/lib/ /usr/lib/
 COPY --from=build /usr/local/lib/python3.9/site-packages/ /usr/local/lib/python3.9/site-packages/
 COPY --from=build /usr/local/bin/ /usr/local/bin/
-# COPY pyproject.toml ./
 COPY scripts/docker-entrypoint.sh ./
-# COPY assets/migrations ./assets/migrations
+RUN chmod +x ./docker-entrypoint.sh
 COPY app ./app
 
 EXPOSE 8000
