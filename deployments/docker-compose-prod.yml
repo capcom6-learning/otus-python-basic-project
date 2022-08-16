@@ -17,17 +17,8 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=toor
-      - MONGO_INITDB_DATABASE=wind
-      - MONGO_INITDB_USER=wind
-      - MONGO_INITDB_PASSWORD=wind
     healthcheck:
-      test:
-        [
-          "CMD",
-          "mongo",
-          "--eval",
-          "db.getSiblingDB('wind').collectionNames()"
-        ]
+      test: [ "CMD", "mongo", "--eval", "db.getSiblingDB('admin')" ]
       interval: 10s
       timeout: 5s
       retries: 3
