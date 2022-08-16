@@ -81,28 +81,27 @@ class RawData(pydantic.BaseModel):
     realtime: int
 
 
-@router.get("", status_code=201)
+@router.get("", status_code=201, description="Process data in PWS format")
 async def process(data: RawData = fastapi.Depends(RawData)):
-    # set timezone to utc
-    # print(data.dateutc.replace(tzinfo=pytz.utc))
-    # return data
     record = AnonymousWeatherRecord(
         timestamp=data.dateutc.replace(tzinfo=pytz.utc),
         wind=WindValue(
-            cur=data.windspeed,
-            min=0,
+            avg=data.windspeed,
+            min=None,
             max=data.windgust,
             azimuth=int(data.winddir + 180) % 360,
             direction=None,
         ),
-        temperature=MeasureValue(cur=data.intemp, min=None, max=None),
-        humidity=MeasureValue(cur=data.inhumi, min=None, max=None),
-        pressure=MeasureValue(cur=data.relbaro * 0.750061561303, min=None, max=None),
-        light=MeasureValue(cur=data.light / 126.7, min=None, max=None),
-        rain=MeasureValue(cur=data.dailyrain, min=None, max=None),
+        temperature=MeasureValue(avg=data.intemp, min=None, max=None),
+        humidity=MeasureValue(avg=data.inhumi, min=None, max=None),
+        pressure=MeasureValue(avg=data.relbaro * 0.750061561303, min=None, max=None),
+        light=MeasureValue(avg=data.light / 126.7, min=None, max=None),
+        rain=MeasureValue(avg=data.dailyrain, min=None, max=None),
     )
 
     try:
         await import_data(data.ID, record)
     except ValueError as e:
         raise fastapi.HTTPException(status_code=400, detail=str(e)) from e
+
+    return fastapi.Response(status_code=201)

@@ -12,21 +12,71 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
-import fastapi
-import bcrypt
+import enum
 import logging
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from app.models import PyObjectId, Station
+from typing import List, Union
 
-import app.repositories.users as users
 import app.repositories.stations as stations
+import app.repositories.measurements as measurements
+import fastapi
+import app.models as models
 
 logger = logging.getLogger(__name__)
 
 router = fastapi.APIRouter(tags=["User"])
 
 
-@router.get("/station", response_model=List[Station], summary="Get all stations")
+class RequestType(str, enum.Enum):
+    LAST = "last"
+    FORECAST = "forecast"
+    HISTORY = "history"
+
+
+@router.get(
+    "/station",
+    response_model=List[models.Station],
+    summary="Get all stations",
+    tags=["Stations"],
+)
 async def station_select():
     return await stations.select()
+
+
+# ObjectId("62fa1796810616013f7f7b19")
+@router.get(
+    "/station/{id}/weather",
+    summary="Get weather for a station",
+    tags=["Stations", "Weather"],
+    responses={
+        200: {
+            "model": Union[
+                models.AnonymousWeatherRecord, List[models.AnonymousWeatherRecord]
+            ]
+        },
+        400: {"description": "Invalid request"},
+        404: {"description": "Data not found"},
+        501: {"description": "Not implemented"},
+    },
+)
+async def weather_get(
+    id: models.PyObjectId = fastapi.Path(..., title="Station ID"),
+    type: RequestType = fastapi.Query(RequestType.LAST, title="Request type"),
+    period: models.Period = fastapi.Depends(models.Period),
+):
+    if type == RequestType.LAST:
+        measure = await measurements.get_last(id)
+        if measure:
+            return models.AnonymousWeatherRecord(**measure.dict(by_alias=True))
+        raise fastapi.HTTPException(404, "No weather record found")
+
+    if type == RequestType.FORECAST:
+        raise fastapi.HTTPException(501, "Not implemented")
+
+    if type == RequestType.HISTORY:
+        records = await measurements.select(id, period, samples=100)
+        return [
+            models.AnonymousWeatherRecord(**record.dict(by_alias=True))
+            for record in records
+        ]
+
+    raise fastapi.HTTPException(400, "Invalid request type")

@@ -44,7 +44,7 @@ stations_router = fastapi.APIRouter(tags=["Stations"])
 
 
 @stations_router.get(
-    "/", response_model=List[Station], tags=["Stations"], summary="Get all stations"
+    "", response_model=List[Station], tags=["Stations"], summary="Get all stations"
 )
 async def station_select():
     return await stations.select()
@@ -64,7 +64,7 @@ async def station_get(id: PyObjectId = fastapi.Path(..., title="Station ID")):
 
 
 @stations_router.post(
-    "/",
+    "",
     summary="Add a station",
     response_model=Station,
     responses={409: {"description": "Station already exists"}},

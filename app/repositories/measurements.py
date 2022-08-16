@@ -12,38 +12,72 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pymongo
+from datetime import datetime, time
 from typing import List, Union
+
+import app.models as models
+import pymongo
 from app.database import db
-from app.models import PyObjectId, Station, WeatherRecord
 
 collection = db.measurements
 
 
-async def select_last() -> List[WeatherRecord]:
+async def select_last() -> List[models.WeatherRecord]:
     """Select last weather records grouped by station"""
     records = await collection.aggregate(
         [
             {"$group": {"_id": "$station._id", "record": {"$last": "$$ROOT"}}},
             {"$sort": {"record.timestamp": pymongo.DESCENDING}},
-            {"$project": {"_id": 0, "record": 1}},
+            {"$replaceRoot": {"newRoot": "$record"}},
         ]
     ).to_list(None)
-    return [WeatherRecord(**record) for record in records]
+    return [models.WeatherRecord(**record) for record in records]
 
 
-async def get_last(station_id: PyObjectId) -> Union[WeatherRecord, None]:
+async def get_last(station_id: models.PyObjectId) -> Union[models.WeatherRecord, None]:
     """Get last weather record for a station"""
     record = await collection.find_one(
         {"station._id": station_id}, sort=[("timestamp", pymongo.DESCENDING)]
     )
     if record:
-        return WeatherRecord(**record)
+        return models.WeatherRecord(**record)
     return None
 
 
-async def insert(record: WeatherRecord) -> WeatherRecord:
+async def insert(record: models.WeatherRecord) -> models.WeatherRecord:
     """Add a weather record"""
     await collection.insert_one(record.dict(by_alias=True))
 
     return record
+
+
+async def select(
+    station_id: models.PyObjectId,
+    period: models.Period,
+    *,
+    samples: Union[int, None] = None,
+) -> List[models.WeatherRecord]:
+    """Select weather records for a station"""
+    query = [
+        {
+            "$match": {
+                "station._id": station_id,
+                "timestamp": {
+                    "$gte": datetime.combine(period.start, time.min)
+                    if not period.start is None
+                    else datetime.min,
+                    "$lte": datetime.combine(period.end, time.max)
+                    if not period.end is None
+                    else datetime.max,
+                },
+            }
+        },
+    ]
+    if samples:
+        query.append({"$sample": {"size": samples}})
+
+    records = await collection.aggregate(
+        query + [{"$sort": {"timestamp": pymongo.ASCENDING}}]
+    ).to_list(None)
+
+    return [models.WeatherRecord(**record) for record in records]

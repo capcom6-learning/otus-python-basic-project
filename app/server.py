@@ -13,14 +13,21 @@
 # limitations under the License.
 
 import fastapi
+from fastapi.middleware.gzip import GZipMiddleware
 
 from app.api import router as api_router
 from app.drivers import router as drivers_router
 from app.log import setup_logging
+from app.settings import config
 
 setup_logging()
 
-app = fastapi.FastAPI()
+app = fastapi.FastAPI(
+    docs_url="/docs" if config.common.debug else None,
+    redoc_url="/redoc" if config.common.debug else None,
+)
+
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 
 app.include_router(api_router, prefix="/api")
 app.include_router(drivers_router)
