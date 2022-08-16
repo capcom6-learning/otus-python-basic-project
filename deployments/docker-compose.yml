@@ -35,6 +35,9 @@ services:
       - DATABASE__DSN=mongodb://wind:wind@mongo:27017
       - DATABASE__NAME=wind
       - DATABASE__DEBUG=false
+    depends_on:
+      mongo:
+        condition: service_healthy
 
 volumes:
   db-data:
