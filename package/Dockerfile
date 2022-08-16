@@ -25,6 +25,9 @@ COPY --from=build /usr/local/lib/python3.9/site-packages/ /usr/local/lib/python3
 COPY --from=build /usr/local/bin/ /usr/local/bin/
 COPY scripts/docker-entrypoint.sh ./
 RUN chmod +x ./docker-entrypoint.sh
+
+COPY static ./static
+COPY templates ./templates
 COPY app ./app
 
 EXPOSE 8000

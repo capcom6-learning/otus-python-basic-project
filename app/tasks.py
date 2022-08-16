@@ -23,7 +23,7 @@ async def import_data(station_code: str, record: models.AnonymousWeatherRecord):
         raise ValueError(f"Station {station_code} not found")
 
     db_record = models.WeatherRecord(station=station, **record.dict())
-    if db_record.wind.avg < 0.01:
+    if db_record.wind.avg < 0.1:
         db_record.wind.azimuth = None
         db_record.wind.direction = None
 

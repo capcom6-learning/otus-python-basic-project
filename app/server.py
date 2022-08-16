@@ -13,12 +13,16 @@
 # limitations under the License.
 
 import fastapi
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 from app.api import router as api_router
 from app.drivers import router as drivers_router
 from app.log import setup_logging
 from app.settings import config
+import app.repositories.measurements as measurements
 
 setup_logging()
 
@@ -32,6 +36,9 @@ app.add_middleware(GZipMiddleware, minimum_size=1024)
 app.include_router(api_router, prefix="/api")
 app.include_router(drivers_router)
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+
 
 @app.on_event("startup")
 async def on_startup() -> None:
@@ -39,6 +46,10 @@ async def on_startup() -> None:
     pass
 
 
-@app.get("/")
-def index():
-    return {"message": "Hello World"}
+@app.get("/", response_class=HTMLResponse)
+async def index(request: fastapi.Request):
+    last_data = await measurements.select_last()
+
+    return templates.TemplateResponse(
+        "index.html", {"request": request, "data": last_data}
+    )
