@@ -58,11 +58,15 @@ class User(BaseModel):
     password: str = pydantic.Field(..., description="Пароль пользователя")
 
 
-class Station(BaseModel):
+class StationIn(pydantic.BaseModel):
     code: str = pydantic.Field(..., description="Код станции")
     name: str = pydantic.Field(..., description="Название станции")
     lat: float = pydantic.Field(..., description="Широта")
     lon: float = pydantic.Field(..., description="Долгота")
+
+
+class Station(BaseModel, StationIn):
+    pass
 
 
 class MeasureValue(pydantic.BaseModel):
