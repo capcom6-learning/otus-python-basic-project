@@ -3,10 +3,8 @@ FROM python:3.9-alpine AS base
 FROM base AS build
 
 # We need to build cffi, so we will use multi-stage build
-# RUN apk add --no-cache gcc libc-dev make git libffi-dev openssl-dev python3-dev libxml2-dev libxslt-dev g++ cargo \
-#     && pip install --no-cache-dir -U pip
-
-RUN pip install --no-cache-dir -U pip
+RUN apk add --no-cache gcc libc-dev make git libffi-dev openssl-dev python3-dev libxml2-dev libxslt-dev g++ cargo \
+    && pip install --no-cache-dir -U pip
 
 WORKDIR /app
 
