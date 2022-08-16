@@ -56,15 +56,9 @@ class DatabaseSettings(pydantic.BaseModel):
     debug: bool = False
 
 
-class HttpSettings(pydantic.BaseModel):
-    host: str = pydantic.Field("127.0.0.1", description="HTTP server host")
-    port: int = pydantic.Field(8000, description="HTTP server port")
-
-
 class Settings(pydantic.BaseSettings):
     common: CommonSettings = CommonSettings()
     database: DatabaseSettings = DatabaseSettings()  # type: ignore
-    http: HttpSettings = HttpSettings()  # type: ignore
 
     class Config:
         env_file = ".env"

@@ -13,9 +13,9 @@
 # limitations under the License.
 
 import asyncio
+
 import click
 
-from app.settings import config
 from app.log import setup_logging
 
 setup_logging()
@@ -28,11 +28,9 @@ def cli():
 
 @cli.command()
 @click.option(
-    "--host", default=config.http.host, show_default=True, help="Hostname to listen on"
+    "--host", default="127.0.0.1", show_default=True, help="Hostname to listen on"
 )
-@click.option(
-    "--port", default=config.http.port, show_default=True, help="Port to listen on"
-)
+@click.option("--port", default=8000, show_default=True, help="Port to listen on")
 def start(host: str, port: int):
     """Start the server"""
     import uvicorn
@@ -62,6 +60,7 @@ def user_add(name: str):
         return
 
     import getpass
+
     import bcrypt
 
     password = getpass.getpass("Password: ")
