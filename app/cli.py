@@ -52,22 +52,23 @@ def db_init():
 @click.option("--name", help="Name of the user", required=True)
 def user_add(name: str):
     """Add a user"""
+    asyncio.run(user_add_async(name))
+
+
+async def user_add_async(name: str):
+    """Add a user async"""
     import app.repositories.users as users
 
-    user = asyncio.run(users.get(name))
+    user = await users.get(name)
     if user:
         click.echo("User already exists")
         return
 
-    import getpass
-
     import bcrypt
 
-    password = getpass.getpass("Password: ")
-    password_repeat = getpass.getpass("Password (repeat): ")
-    if password != password_repeat:
-        click.echo("Passwords do not match")
-        return
+    password = click.prompt(
+        "Password", hide_input=True, confirmation_prompt="Repeat password"
+    )
 
     if len(password) < 8:
         click.echo("Password must be at least 8 characters long")
@@ -79,6 +80,6 @@ def user_add(name: str):
         name=name, password=bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
     )
 
-    asyncio.run(users.insert(user))
+    await users.insert(user)
 
     click.echo(f"User {name} added with id {user.id}")
