@@ -31,5 +31,7 @@ COPY templates ./templates
 COPY app ./app
 
 EXPOSE 8000
+HEALTHCHECK --interval=5s --timeout=5s --retries=3 \
+    CMD ["python" "-m" "app" "ping"]
 
 ENTRYPOINT ["/app/docker-entrypoint.sh"]

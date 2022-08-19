@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import asyncio
+import os
 
 import click
 
@@ -36,6 +37,25 @@ def start(host: str, port: int):
     import uvicorn
 
     uvicorn.run("app.server:app", host=host, port=port, reload=True)
+
+
+@cli.command()
+def ping():
+    """Ping the server"""
+    import requests
+
+    port = os.environ.get("PORT", "8000")
+
+    try:
+        response = requests.get(f"http://localhost:{port}", timeout=1)
+        if response.status_code == 200:
+            click.echo("Server is up")
+        else:
+            click.echo("Server is down")
+            exit(1)
+    except Exception:
+        click.echo("Server is down")
+        exit(1)
 
 
 @cli.command()
