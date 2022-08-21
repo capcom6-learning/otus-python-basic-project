@@ -92,7 +92,7 @@ async def process(data: RawData = fastapi.Depends(RawData)):
             azimuth=int(data.winddir + 180) % 360,
             direction=None,
         ),
-        temperature=MeasureValue(avg=data.intemp, min=None, max=None),
+        temperature=MeasureValue(avg=data.outtemp, min=None, max=None),
         humidity=MeasureValue(avg=data.inhumi, min=None, max=None),
         pressure=MeasureValue(avg=data.relbaro * 0.750061561303, min=None, max=None),
         light=MeasureValue(avg=data.light / 126.7, min=None, max=None),
