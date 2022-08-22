@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import asyncio
+import functools
 import os
 
 import click
@@ -20,6 +21,14 @@ import click
 from app.log import setup_logging
 
 setup_logging()
+
+
+def make_sync(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        return asyncio.run(func(*args, **kwargs))
+
+    return wrapper
 
 
 @click.group()
@@ -59,24 +68,21 @@ def ping():
 
 
 @cli.command()
-def db_init():
+@make_sync
+async def db_init():
     """Initialize the database"""
     from app.database import init
 
-    asyncio.run(init())
+    await init()
 
     click.echo("Database initialized")
 
 
 @cli.command()
 @click.option("--name", help="Name of the user", required=True)
-def user_add(name: str):
+@make_sync
+async def user_add(name: str):
     """Add a user"""
-    asyncio.run(user_add_async(name))
-
-
-async def user_add_async(name: str):
-    """Add a user async"""
     import app.repositories.users as users
 
     user = await users.get(name)
