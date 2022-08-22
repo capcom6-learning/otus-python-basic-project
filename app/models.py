@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from datetime import datetime, date
+from enum import Enum
 from typing import Union
 import pydantic
 import bson
@@ -150,6 +151,15 @@ class WindValue(MeasureValue):
     direction: Union[WindDirection, None] = pydantic.Field(
         None, description="Направление"
     )
+
+
+class MeasureType(Enum):
+    wind = "wind"
+    temperature = "temperature"
+    humidity = "humidity"
+    pressure = "pressure"
+    light = "light"
+    rain = "rain"
 
 
 class AnonymousWeatherRecord(pydantic.BaseModel):

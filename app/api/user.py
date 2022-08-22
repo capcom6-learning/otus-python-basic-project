@@ -13,12 +13,15 @@
 # limitations under the License.
 
 import enum
+from io import BytesIO
 import logging
 from typing import List, Union
 
 import app.repositories.stations as stations
 import app.repositories.measurements as measurements
 import fastapi
+import starlette.responses as responses
+import matplotlib.pyplot as plt
 import app.models as models
 
 logger = logging.getLogger(__name__)
@@ -80,3 +83,40 @@ async def weather_get(
         ]
 
     raise fastapi.HTTPException(400, "Invalid request type")
+
+
+@router.get(
+    "/station/{id}/{param}/graph",
+    summary="Get graph for a station",
+    tags=["Stations", "Weather"],
+    responses={
+        200: {"content": {"image/png": {}}, "description": "OK"},
+        400: {"description": "Invalid request"},
+    },
+)
+async def weather_graph(
+    id: models.PyObjectId = fastapi.Path(..., title="Station ID"),
+    param: models.MeasureType = fastapi.Path(..., title="Parameter"),
+    period: models.Period = fastapi.Depends(models.Period),
+    width: int = fastapi.Query(640, title="Width", gt=320, le=1920),
+    height: int = fastapi.Query(480, title="Height", gt=240, le=1080),
+):
+    records = await measurements.select(id, period, samples=width)
+    x = [record.timestamp for record in records]
+    y = [getattr(record, param.value).avg for record in records]
+
+    fig, ax = plt.subplots()
+    ax.plot(x, y)
+    # ax.set_title(str(param))
+    # ax.set_xlabel("Time")
+    # ax.set_ylabel(str(param))
+    fig.set_size_inches(width / 100, height / 100)
+    fig.set_dpi(100)
+    fig.tight_layout()
+    fig.canvas.draw()
+    buf = BytesIO()
+    plt.savefig(buf, format="png")
+    buf.seek(0)
+    plt.close(fig)
+
+    return responses.StreamingResponse(buf, media_type="image/png")

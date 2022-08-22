@@ -17,6 +17,7 @@ from typing import List, Union
 
 import app.models as models
 import pymongo
+import numpy as np
 from app.database import db
 
 collection = db.measurements
