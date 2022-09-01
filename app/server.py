@@ -13,16 +13,43 @@
 # limitations under the License.
 
 import fastapi
+from fastapi.responses import HTMLResponse
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
-app = fastapi.FastAPI()
+from app.api import router as api_router
+from app.drivers import router as drivers_router
+from app.log import setup_logging
+from app.settings import config
+import app.repositories.measurements as measurements
+
+setup_logging()
+
+app = fastapi.FastAPI(
+    docs_url="/docs" if config.common.debug else None,
+    redoc_url="/redoc" if config.common.debug else None,
+)
+
+app.add_middleware(GZipMiddleware, minimum_size=1024)
+
+app.include_router(api_router, prefix="/api")
+app.include_router(drivers_router)
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
 
-@app.get("/")
-def index():
-    return {"message": "Hello World"}
+@app.on_event("startup")
+async def on_startup() -> None:
+    # verify database
+    pass
 
 
-if __name__ == "__main__":
-    import uvicorn
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+async def index(request: fastapi.Request):
+    last_data = await measurements.select_last()
 
-    uvicorn.run(app)
+    return templates.TemplateResponse(
+        "index.html", {"request": request, "data": last_data}
+    )
